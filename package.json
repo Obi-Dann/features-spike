@@ -8,6 +8,8 @@
     "debug": "webpack"
   },
   "devDependencies": {
+    "@types/node": "^9.6.4",
+    "@types/typescript": "^2.0.0",
     "ts-loader": "^4.2.0",
     "typescript": "^2.8.1",
     "webpack": "^4.5.0",

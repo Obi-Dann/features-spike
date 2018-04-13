@@ -2,7 +2,7 @@
   "usedFeatures": {
     "Test": {
       "usage": [
-        "src/index.ts"
+        "src/const-import.ts"
       ]
     }
   }

@@ -1,1 +1,14 @@
-{"usedFeatures":["Test2","Test"]}
+{
+  "usedFeatures": {
+    "Test2": {
+      "usage": [
+        "src/another-bundle.ts"
+      ]
+    },
+    "Test": {
+      "usage": [
+        "src/another-bundle.ts"
+      ]
+    }
+  }
+}

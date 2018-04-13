@@ -12,7 +12,9 @@ module.exports = function () {
         },
         entry: {
             main: './src/index.ts',
-            another: './src/another-bundle.ts'
+            another: './src/another-bundle.ts',
+            'const-import': './src/const-import.ts',
+            'require-test': './src/require-test.ts'
         },
         module: {
             rules: [
@@ -28,8 +30,10 @@ module.exports = function () {
         },
         optimization: {
             usedExports: true,
-            minimize: false,
-            concatenateModules: false
+            // minimize: true,
+            // concatenateModules: false,
+            providedExports: true,
+            
         },
         plugins: [
             new ReportUnusedFeatures(path.resolve('./src/features.ts'))
@@ -52,11 +56,40 @@ class ReportUnusedFeatures {
         compiler.hooks.compilation.tap('ReportUnusedFeatures', compilation => {
             compilation.hooks.afterOptimizeModules.tap('ReportUnusedFeatures', () => {
                 compilation.chunks.forEach(c => {
-                    const [features] = c.getModules().filter(x => x.resource === this.featuresFileAbsolutePath);
-                    if (features) {
-                        const source = JSON.stringify({ usedFeatures: features.usedExports });
+                    const [featuresModules] = c.getModules().filter(x => x.resource === this.featuresFileAbsolutePath);
 
-                        compilation.assets[c.name +'.features.json'] = {
+
+                    if (!featuresModules) {
+                        return;
+                    }
+
+                    const features = {};
+
+                    c.getModules().forEach(m => {
+                        if (m === featuresModules) {
+                            return;
+                        }
+
+                        m.dependencies.forEach(d => {
+                            if (d.module !== featuresModules) {
+                                return;
+                            }
+                            const ref = d.getReference();
+                            if (!ref || !ref.importedNames || !ref.importedNames.length) {
+                                return;
+                            }
+
+                            ref.importedNames.forEach(x => {
+                                const feature = features[x] = features[x] || { usage: [] };
+                                feature.usage.push(path.relative(__dirname, m.resource));
+                            });
+                        });
+                    });
+
+                    if (Object.keys(features).length) {
+                        const source = JSON.stringify({ usedFeatures: features }, null, 2);
+
+                        compilation.assets[c.name + '.features.json'] = {
                             source: function () { return new Buffer(source); },
                             size: function () { return Buffer.byteLength(source); }
                         };
