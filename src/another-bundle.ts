@@ -1,6 +1,10 @@
-import * as Features from './features';
+if (Features.Test2) {
+    console.log('a')
+} else {
+    console.log('b');
+}
 
-if (Features.Test2 && Features.Test) {
+if (Features['Test2']) {
     console.log('a')
 } else {
     console.log('b');

@@ -1,6 +1,8 @@
 const webpack = require("webpack");
 const path = require('path');
 
+const RuntimeInjectionPlugin = require('./plugin/RuntimeInjectionPlugin');
+const RuntimeInjectionReporterPlugin = require('./plugin/RuntimeInjectionReporterPlugin');
 /**
  * @return {webpack.Configuration}
  */
@@ -12,9 +14,7 @@ module.exports = function () {
         },
         entry: {
             main: './src/index.ts',
-            another: './src/another-bundle.ts',
-            'const-import': './src/const-import.ts',
-            'require-test': './src/require-test.ts'
+            another: './src/another-bundle.ts'
         },
         module: {
             rules: [
@@ -22,80 +22,30 @@ module.exports = function () {
                     test: /\.tsx?$/,
                     use: 'ts-loader',
                     exclude: /node_modules/
+                },
+                {
+                    test: /features$/,
+                    use: 'features-loader',
+                    exclude: /node_modules/
                 }
             ]
         },
         resolve: {
             extensions: ['.tsx', '.ts', '.js']
         },
+        devtool: false,
         optimization: {
             usedExports: true,
             // minimize: true,
             // concatenateModules: false,
             providedExports: true,
-            
+
         },
         plugins: [
-            new ReportUnusedFeatures(path.resolve('./src/features.ts'))
+            new RuntimeInjectionPlugin({
+                'Features': path.resolve(__dirname, 'src', 'runtime-features-provider')
+            }),
+            new RuntimeInjectionReporterPlugin(),
         ]
     };
-}
-
-class ReportUnusedFeatures {
-
-    constructor(featuresFileAbsolutePath) {
-        this.featuresFileAbsolutePath = featuresFileAbsolutePath;
-    }
-
-    /**
-     * 
-     * @param {webpack.Compiler} compiler 
-     */
-    apply(compiler) {
-
-        compiler.hooks.compilation.tap('ReportUnusedFeatures', compilation => {
-            compilation.hooks.afterOptimizeModules.tap('ReportUnusedFeatures', () => {
-                compilation.chunks.forEach(c => {
-                    const [featuresModules] = c.getModules().filter(x => x.resource === this.featuresFileAbsolutePath);
-
-
-                    if (!featuresModules) {
-                        return;
-                    }
-
-                    const features = {};
-
-                    c.getModules().forEach(m => {
-                        if (m === featuresModules) {
-                            return;
-                        }
-
-                        m.dependencies.forEach(d => {
-                            if (d.module !== featuresModules) {
-                                return;
-                            }
-                            const ref = d.getReference();
-                            if (!ref || !ref.importedNames || !ref.importedNames.length) {
-                                return;
-                            }
-
-                            ref.importedNames.forEach(x => {
-                                const feature = features[x] = features[x] || { usage: [] };
-                                feature.usage.push(path.relative(__dirname, m.resource));
-                            });
-                        });
-                    });
-
-                    if (Object.keys(features).length) {
-                        const source = JSON.stringify({ usedFeatures: features }, null, 2);
-
-                        compilation.assets[c.name + '.features.json'] = {
-                            source: function () { return new Buffer(source); },
-                            size: function () { return Buffer.byteLength(source); }
-                        };
-                    }
-                });
-            });
-        });
-    }
 }

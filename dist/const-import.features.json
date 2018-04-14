@@ -1,9 +1,0 @@
-{
-  "usedFeatures": {
-    "Test": {
-      "usage": [
-        "src/const-import.ts"
-      ]
-    }
-  }
-}

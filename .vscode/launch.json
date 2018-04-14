@@ -10,9 +10,10 @@
 			"name": "Launch Webpack Config",
 			"cwd": "${workspaceRoot}",
 			"program": "${workspaceRoot}/node_modules/webpack-cli/bin/webpack.js",
-			// "args": [
-			// 	"--config=${file}"
-			// ]
+			"args": [
+                "--mode",
+                "development"
+			]
         }
     ]
 }
