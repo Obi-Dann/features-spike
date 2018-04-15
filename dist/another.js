@@ -64,6 +64,8 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/ 	// Load runtime parameters from global
+/******/ 	__webpack_require__.rp = window["webpackRuntimeParameters_634c8098e158c487dcc0d4a2ac88b693"] = window["webpackRuntimeParameters_634c8098e158c487dcc0d4a2ac88b693"] || {};
 /******/
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = "./src/another-bundle.ts");
@@ -79,38 +81,20 @@
 /*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(__webpack_runtime_injected_Features_Test2) {if (__webpack_runtime_injected_Features_Test2) {
+/* WEBPACK VAR INJECTION */(function(__webpack_runtime_parameter_Features_Test2) {if (__webpack_runtime_parameter_Features_Test2) {
     console.log('a');
 }
 else {
     console.log('b');
 }
-if (__webpack_runtime_injected_Features_Test2) {
+if (__webpack_runtime_parameter_Features_Test2) {
     console.log('a');
 }
 else {
     console.log('b');
 }
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./src/runtime-features-provider */ "./src/runtime-features-provider.ts")("Test2")))
-
-/***/ }),
-
-/***/ "./src/runtime-features-provider.ts":
-/*!******************************************!*\
-  !*** ./src/runtime-features-provider.ts ***!
-  \******************************************/
-/*! exports provided: default */
-/*! all exports used */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return loadKey; });
-function loadKey(key) {
-    return window.keyset[key];
-}
-
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__.rp["Features"]["Test2"]))
 
 /***/ })
 

@@ -1,0 +1,12 @@
+<!-- <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>  
+    <script src="<%= JSON.stringify(Object.keys(htmlWebpackPlugin.files.chunks[chunk])) %>"></script>  
+<% } %>  -->
+
+<% for (var entry of compilation.entrypoints) { %>
+<% var data = htmlWebpackPlugin.files.chunks[chunk] %>
+<% var asset = compilation.assets[data.entry] %>
+<%= JSON.stringify(asset) %> 
+
+<my-angular-app>
+    Loading2...3
+</my-angular-app>

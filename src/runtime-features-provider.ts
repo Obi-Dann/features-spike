@@ -1,3 +1,4 @@
 export default function loadKey(key: string) {
-    return (window as any).keyset[key];
+    debugger;
+    return (global as any).__webpack_runtime_injected_;
 }

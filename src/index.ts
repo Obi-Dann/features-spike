@@ -14,7 +14,11 @@ if (Features.Test2) {
 }
 
 if (Features['Test2']) {
-    console.log('a')
+    console.log('a2')
 } else {
     console.log('b');
 }
+
+import('./async-module').then(x => {
+
+});

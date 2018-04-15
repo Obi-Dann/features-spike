@@ -12,7 +12,8 @@
 			"program": "${workspaceRoot}/node_modules/webpack-cli/bin/webpack.js",
 			"args": [
                 "--mode",
-                "development"
+                "development",
+                "--watch"
 			]
         }
     ]

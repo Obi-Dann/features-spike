@@ -1,0 +1,173 @@
+"use strict";
+
+const RuntimeInjectionDependency = require('./RuntimeInjectionDependency');
+const path = require('path');
+const SortableSet = require('webpack/lib/util/SortableSet');
+const Template = require('webpack/lib/Template');
+
+class RuntimeInjectionReporterPlugin {
+    /**
+     * 
+     * @param {webpack.Compiler} compiler 
+     */
+    apply(compiler) {
+        compiler.hooks.compilation.tap('RuntimeInjectionReporterPlugin', compilation => {
+            compilation.hooks.additionalChunkAssets.tap('RuntimeInjectionPlugin', chunks => {
+                const buf = [];
+
+                chunks.forEach(chunk => {
+                    if (!chunk.entryModule) {
+                        return;
+                    }
+
+                    const runtimeParameters = chunk.entryModule && chunk.entryModule.buildMeta.runtimeParameters;
+                    if (!runtimeParameters) {
+                        return;
+                    }
+
+                    buf.push(
+                        `@helper RenderScriptTag_${chunk.name}(string nonce = "", bool async = false)`,
+                        `{`,
+                        Template.indent([
+                            `var srcAttr = "";/* TODO Resolve path*/`,
+                            `<script src="@(html.ResolveContentUrl(srcAttr))?v=${chunk.hash}" async="@async" nonce="@nonce" />`
+                        ]),
+                        `}`,
+                    );
+
+                    buf.push(
+                        `@functions {`,
+                        Template.indent([
+                            `public class ScriptParameters_${chunk.name} {`,
+                            ...(Object.keys(runtimeParameters.parameters).map(x => {
+                                debugger;
+                            })),
+                            `}`,
+                        ]),
+                        `}`,
+                    );
+                });
+
+                const source = Template.asString(buf);
+
+                compilation.assets[`HtmlHelpers.cshtml`] = {
+                    source: function () { return new Buffer(source); },
+                    size: function () { return Buffer.byteLength(source); }
+                };
+            });
+
+            // compilation.hooks.afterOptimizeChunks.tap('RuntimeInjectionReporterPlugin', () => {
+            //     const injectionsPerEntry = new Map();
+
+            //     compilation.modules.forEach(module => {
+            //         const injections = [];
+
+            //         module.dependencies.forEach(d => {
+            //             if (!(d instanceof RuntimeInjectionDependency)) {
+            //                 return;
+            //             }
+            //             const readableIdentifier = module.readableIdentifier(compilation.requestShortener);
+
+            //             injections.push({
+            //                 injectionSet: d.injectionSet,
+            //                 injectionKey: d.injectionKey,
+            //                 usage: `${readableIdentifier}:${d.loc.start.line}:${d.loc.start.column}`
+            //             });
+            //         });
+
+            //         for (const entry of getEntriesForModule(module)) {
+            //             let perEntry = injectionsPerEntry.get(entry);
+            //             if (!perEntry) {
+            //                 injectionsPerEntry.set(entry, perEntry = {});
+            //             }
+
+            //             for (const x of injections) {
+            //                 const injectionSet = perEntry[x.injectionSet] = perEntry[x.injectionSet] || {};
+            //                 const injection = injectionSet[x.injectionKey] =
+            //                     injectionSet[x.injectionKey] || { usage: new SortableSet(undefined, sortByLocale) };
+
+            //                 injection.usage.add(x.usage);
+            //             }
+            //         }
+            //     });
+
+            //     // compilation.entries
+            //     compilation.entrypoints.forEach(entrypoint => {
+            //         const injections = injectionsPerEntry.get(entrypoint);
+
+            //         if (injections && Object.keys(injections).length) {
+            //             const source = JSON.stringify({ injections }, setToArrayReplacer, 2);
+
+            //             compilation.assets[entrypoint.name + '.injections.json'] = {
+            //                 source: function () { return new Buffer(source); },
+            //                 size: function () { return Buffer.byteLength(source); }
+            //             };
+            //         }
+            //     });
+
+            // });
+
+            // compilation.mainTemplate.hooks.beforeStartup.tap('RuntimeInjectionReporterPlugin', (source, chunk, hash) => {
+            //     // debugger;
+            //     const buf = [];
+            //     if (chunk.entryModule /* && runtime parameters*/) {
+            //         var globalObject = compilation.mainTemplate.outputOptions.globalObject;
+            //         var ns = `webpackRuntimeParameters_${hash}`;
+            //         var runtimeParametersVar = `${globalObject}[${JSON.stringify(ns)}] = ${globalObject}[${JSON.stringify(ns)}] || {};`;
+            //         chunk.entryModule.buildMeta.runtimeParametersVar = runtimeParametersVar;
+
+            //         buf.push("// Load runtime parameters from global");
+            //         buf.push(`${compilation.mainTemplate.requireFn}.rp = ${runtimeParametersVar}`);
+            //         buf.push("");
+            //     }
+            //     return Template.asString(buf);
+            // });
+        });
+    }
+}
+
+
+function* getEntriesForModule(module) {
+    for (const chunk of module.chunksIterable) {
+        const entries = getEntriesForChunk(chunk)
+        for (const entry of entries) {
+            yield entry;
+        }
+    }
+}
+
+function* getEntriesForChunk(chunk) {
+    for (const group of chunk.groupsIterable) {
+        const entries = getEntriesForGroup(group)
+        for (const entry of entries) {
+            yield entry;
+        }
+    }
+}
+
+function* getEntriesForGroup(group) {
+    if (group.isInitial()) {
+        yield group;
+        return;
+    }
+
+    for (const parent of group.parentsIterable) {
+        const entries = getEntriesForGroup(parent);
+        for (const entry of entries) {
+            yield entry;
+        }
+    }
+};
+
+function sortByLocale(a, b) {
+    return a.localCompare(b);
+};
+
+function setToArrayReplacer(key, value) {
+    if (value instanceof Set) {
+        return [...value];
+    }
+    return value;
+}
+
+module.exports = RuntimeInjectionReporterPlugin;

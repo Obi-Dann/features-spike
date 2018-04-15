@@ -1,8 +1,9 @@
 const webpack = require("webpack");
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
-const RuntimeInjectionPlugin = require('./plugin/RuntimeInjectionPlugin');
-const RuntimeInjectionReporterPlugin = require('./plugin/RuntimeInjectionReporterPlugin');
+const RuntimeParameterPlugin = require('./plugin/RuntimeParameterPlugin');
+
 /**
  * @return {webpack.Configuration}
  */
@@ -39,13 +40,22 @@ module.exports = function () {
             // minimize: true,
             // concatenateModules: false,
             providedExports: true,
-
+            splitChunks: {
+                chunks: 'initial'
+            }
         },
         plugins: [
-            new RuntimeInjectionPlugin({
+            new RuntimeParameterPlugin({
                 'Features': path.resolve(__dirname, 'src', 'runtime-features-provider')
             }),
-            new RuntimeInjectionReporterPlugin(),
+            // new HtmlWebpackPlugin({
+            //     //     // inject: false,
+            //     filename: 'HtmlHelpers.cshtml',
+            //     template: 'test.ejs',
+            //     templateParameters: (compilation, assets, options) => {
+            //         debugger;
+            //     }
+            // })
         ]
     };
 }
